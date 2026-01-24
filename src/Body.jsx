@@ -1,12 +1,14 @@
 import React from "react";
 import { Outlet } from "react-router-dom"; // <-- import Outlet
 import NavBar from "./NavBar.jsx";
+import Footer from "./Footer.jsx";
 
 const Body = () => {
   return (
     <div>
       <NavBar />
       <Outlet />
+      <Footer />
     </div>
   );
 };
