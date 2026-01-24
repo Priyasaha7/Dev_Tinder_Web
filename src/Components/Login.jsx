@@ -2,8 +2,8 @@ import axios from "axios";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { addUser } from "./utils/userSlice";
-import { BASE_URL } from "./utils/constants";
+import { addUser } from "../utils/userSlice";
+import { BASE_URL } from "../utils/constants";
 
 const Login = () => {
   const [emailId, setEmailId] = useState("user1@gmail.com");
@@ -15,6 +15,7 @@ const Login = () => {
   const handleLoginButton = async () => {
     try {
       const res = await axios.post(BASE_URL + "/login", {
+        // frontend call to backend login API
         emailID: emailId,
         password,
       });
@@ -50,7 +51,7 @@ const Login = () => {
         />
 
         <button
-          className="btn btn-neutral mt-6 w-full"
+          className="btn btn-neutral mt-6 w-full bg-black hover:bg-gray-950"
           onClick={handleLoginButton}
         >
           Login
