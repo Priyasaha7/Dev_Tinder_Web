@@ -14,11 +14,17 @@ const Login = () => {
 
   const handleLoginButton = async () => {
     try {
-      const res = await axios.post(BASE_URL + "/login", {
-        // frontend call to backend login API
-        emailID: emailId,
-        password,
-      });
+      const res = await axios.post(
+        BASE_URL + "/login",
+        {
+          // frontend call to backend login API
+          emailID: emailId,
+          password,
+        },
+        {
+          withCredentials: true, // to send cookies along with the request
+        },
+      );
 
       dispatch(addUser(res.data));
       navigate("/");
