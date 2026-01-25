@@ -8,6 +8,7 @@ import { BASE_URL } from "../utils/constants";
 const Login = () => {
   const [emailId, setEmailId] = useState("user1@gmail.com");
   const [password, setPassword] = useState("User1@123");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -29,7 +30,9 @@ const Login = () => {
       dispatch(addUser(res.data));
       navigate("/");
     } catch (err) {
-      console.log("Login error:", err);
+      setError(
+        err?.response?.data || "Login failed. Please check your credentials.",
+      );
     }
   };
 
@@ -37,7 +40,6 @@ const Login = () => {
     <div className="flex justify-center mt-10">
       <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm border p-8">
         <legend className="fieldset-legend text-2xl ">Login</legend>
-
         <label className="label">Email ID</label>
         <input
           type="email"
@@ -46,7 +48,6 @@ const Login = () => {
           placeholder="Email"
           onChange={(e) => setEmailId(e.target.value)}
         />
-
         <label className="label mt-4">Password</label>
         <input
           type="password"
@@ -55,7 +56,7 @@ const Login = () => {
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
         />
-
+        <p className="text-rose-700 text-sm">{error}</p>
         <button
           className="btn btn-neutral mt-6 w-full bg-black hover:bg-gray-950"
           onClick={handleLoginButton}
