@@ -16,8 +16,12 @@ const UserCard = ({ user }) => {
           <p>Gender: {user.gender}</p>
           <p>Skills: {user.skills.join(", ")}</p> <br />
           <div className="card-actions justify-end">
-            <button className="btn btn-dash btn-secondary">Ignore</button>
-            <button className="btn btn-dash btn-info">Interested</button>
+            <button className="btn btn-outline btn-secondary px-2">
+              Ignore
+            </button>
+            <button className="btn btn-outline btn-accent px-2">
+              Interested
+            </button>
           </div>
         </div>
       </div>
