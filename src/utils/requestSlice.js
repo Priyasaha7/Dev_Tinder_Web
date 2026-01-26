@@ -5,7 +5,7 @@ const requestSlice = createSlice({
   initialState: null,
   reducers: {
     addRequests: (state, action) => {
-      action.payload;
+      return action.payload;
     },
     // removeRequest: () => {
     //     return nu
