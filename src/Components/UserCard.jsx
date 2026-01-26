@@ -10,9 +10,11 @@ const UserCard = ({ user }) => {
           <img src={user.photoUrl} alt="User" className="w-48 object-cover" />
         </figure>
         <div className="card-body">
-          <h2 className="card-title">{user.firstName + " " + user.lastName}</h2>
+          <h2 className="card-title text-xl">
+            {user.firstName + " " + user.lastName}
+          </h2>
           <p>{user.about}</p>
-          <p>Age: {user.age || 0} </p>
+          <p>Age: {user.age || "Not given yet"} </p>
           <p>Gender: {user.gender}</p>
           <p>Skills: {user.skills.join(", ")}</p> <br />
           <div className="card-actions justify-end ">

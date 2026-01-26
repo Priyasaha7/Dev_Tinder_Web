@@ -199,11 +199,11 @@ const EditProfile = ({ user }) => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto p-8 justify-center items-start ">
+      <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto p-7 justify-center items-start ">
         {/* Left Side - Edit Profile Card */}
         <div className="card w-full max-w-md lg:order-1 bg-base-200 border-base-300 rounded-box shadow-xl">
           <div className="card-body ">
-            <h2 className="card-title text-2xl mb-8">Edit Your Profile</h2>
+            <h2 className="card-title text-2xl mb-3">Edit Your Profile</h2>
 
             {/* Row 1: First Name + Last Name - Tight spacing */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-base-300 rounded-box mb-4">
@@ -293,7 +293,7 @@ const EditProfile = ({ user }) => {
             </div>
 
             {/* Single: About - Tight padding */}
-            <div className=" border border-base-300 rounded-box mb-8">
+            <div className=" border border-base-300 rounded-box ">
               <label className="label">
                 <span className="label-text">About</span>
               </label>
@@ -306,7 +306,7 @@ const EditProfile = ({ user }) => {
               />
             </div>
 
-            <p className="text-rose-700 text-sm mb-6">{error}</p>
+            <p className="text-rose-700 text-sm mb-2">{error}</p>
             <button
               className="btn btn-neutral w-full bg-black hover:bg-gray-950"
               onClick={saveProfile}

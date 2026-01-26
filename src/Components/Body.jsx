@@ -36,12 +36,6 @@ const Body = () => {
     fetchUser();
   }, []);
 
-  // useEffect(() => {
-  //   if (!userData) {
-  //     fetchUser();
-  //   }
-  // }, [userData]);
-
   return (
     <div>
       <NavBar />
