@@ -156,11 +156,11 @@ import UserCard from "./UserCard";
 const EditProfile = ({ user }) => {
   const [firstName, setfirstName] = useState(user.firstName);
   const [lastName, setlastName] = useState(user.lastName);
-  const [photoUrl, setphotoUrl] = useState(user.photoUrl);
-  const [age, setage] = useState(user.age);
+  const [photoUrl, setphotoUrl] = useState(user.photoUrl || "");
+  const [age, setage] = useState(user.age || "");
   const [gender, setgender] = useState(user.gender);
-  const [about, setabout] = useState(user.about);
-  const [skills, setskills] = useState(user.skills);
+  const [about, setabout] = useState(user.about || "");
+  const [skills, setskills] = useState(user.skills || "");
 
   const [showToast, setShowToast] = useState(false);
   const [error, setError] = useState("");
@@ -269,12 +269,20 @@ const EditProfile = ({ user }) => {
                 <label className="label">
                   <span className="label-text">Skills</span>
                 </label>
+
                 <input
                   type="text"
-                  value={skills}
+                  value={skills.join(", ")}
                   className="input input-bordered w-full"
-                  placeholder="Skills"
-                  onChange={(e) => setskills(e.target.value)}
+                  placeholder="e.g. React, MongoDB, etc..."
+                  onChange={(e) =>
+                    setskills(
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    )
+                  }
                 />
               </div>
 
