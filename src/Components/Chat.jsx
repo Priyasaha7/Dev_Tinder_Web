@@ -1,4 +1,9 @@
+import { useParams } from "react-router-dom";
+
 const Chat = () => {
+  const { targetUserId } = useParams();
+  console.log(targetUserId);
+
   return (
     <div className="flex flex-col h-[70vh] w-3/4 mx-auto bg-base-300 rounded-xl shadow-lg">
       {/* Header */}
