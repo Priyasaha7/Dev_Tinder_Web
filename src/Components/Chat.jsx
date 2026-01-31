@@ -9,18 +9,35 @@ const Chat = () => {
   const userId = user?._id;
   const firstName = user?.firstName;
 
-  const [messages, setMessages] = useState([
-    { text: "You were the Chosen One!" },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
-  console.log("Target User ID:", targetUserId);
+  const sendMessage = () => {
+    const socket = createSocketConnection();
+
+    socket.emit("sendMessage", {
+      firstName,
+      userId,
+      targetUserId,
+      text: newMessage,
+    });
+    setNewMessage("");
+  };
+
+  //console.log("Target User ID:", targetUserId);
 
   useEffect(() => {
     if (!userId) return;
 
     const socket = createSocketConnection();
+
     // as sson as the page loads , the socket connection is made and the joinChat is emitted
     socket.emit("joinChat", { firstName, userId, targetUserId });
+
+    socket.on("messageReceived", ({ firstName, text }) => {
+      console.log(firstName + " says " + text);
+      setMessages((messages) => [...messages, { firstName, text }]);
+    });
 
     return () => {
       socket.disconnect();
@@ -39,7 +56,7 @@ const Chat = () => {
         {messages.map((msg, index) => (
           <div key={index} className="chat chat-start">
             <div className="chat-header">
-              Priya Saha
+              {msg.firstName}
               <time className="text-xs opacity-50 ml-2">1 sec ago</time>
             </div>
             <div className="chat-bubble">{msg.text}</div>
@@ -51,10 +68,14 @@ const Chat = () => {
       {/* Input */}
       <div className="p-5 border-t border-gray-600 flex items-center gap-2">
         <input
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
           className="flex-1 border border-gray-500 text-white rounded p-2 bg-transparent"
           placeholder="Type a message..."
         />
-        <button className="btn btn-secondary">Send</button>
+        <button onClick={sendMessage} className="btn btn-secondary">
+          Send
+        </button>
       </div>
     </div>
   );
