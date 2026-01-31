@@ -38,7 +38,7 @@ const Connection = () => {
           connection;
 
         return (
-          <div>
+          <div key={_id}>
             <div>
               <img
                 alt="photo"
