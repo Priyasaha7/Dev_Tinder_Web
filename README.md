@@ -401,6 +401,416 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
+# DevTinder – Complete Deployment & AWS SES Notes
+
+> **Beginner‑friendly, end‑to‑end guide** covering everything done from scratch: EC2 setup, frontend & backend deployment, NGINX reverse proxy, PM2, `/api` proxying, update workflow, AWS SES email setup, and cron jobs.
+>
+> This README is **reusable for any Node.js + React project**.
+
+---
+
+## 🔷 Architecture Overview
+
+**Stack**
+
+- Frontend: React (Vite)
+- Backend: Node.js (Express)
+- Database: MongoDB Atlas
+- Server: AWS EC2 (Ubuntu)
+- Process Manager: PM2
+- Web Server / Reverse Proxy: NGINX
+- Email: AWS SES
+- Jobs: node-cron
+
+**Request Flow**
+
+```
+Browser → NGINX (80/443)
+        ├─ /        → React build (static files)
+        └─ /api     → proxy_pass → Node.js (7777)
+```
+
+**URLs**
+
+```
+Frontend (IP)        : http://<EC2_PUBLIC_IP>/
+Backend (Direct)    : http://<EC2_PUBLIC_IP>:7777   (internal use)
+Domain (optional)   : https://devtinder.com
+API (via proxy)     : https://devtinder.com/api
+```
+
+---
+
+## 1️⃣ Prerequisites (Local)
+
+- Git installed
+- Node.js installed (prefer same major version as server)
+
+  ```bash
+  node -v
+  npm -v
+  ```
+
+- Frontend & Backend pushed to GitHub
+
+---
+
+## 2️⃣ AWS EC2 Setup
+
+### Launch Instance
+
+- Create AWS account
+- Launch **Ubuntu** EC2
+- Download PEM key
+
+### Connect to EC2
+
+```bash
+chmod 400 devTinder-secret.pem
+ssh -i "devTinder-secret.pem" ubuntu@<EC2_PUBLIC_IP>
+```
+
+---
+
+## 3️⃣ Server Basic Setup
+
+```bash
+sudo apt update
+```
+
+> Ensure Node.js version is compatible with your local setup (minor mismatch is OK for college projects).
+
+---
+
+## 4️⃣ Frontend Deployment (React + Vite)
+
+### Clone & Install
+
+```bash
+git clone https://github.com/Priyasaha7/Dev_Tinder_Web.git
+cd Dev_Tinder_Web
+npm install
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+> Output is generated in `dist/`
+
+---
+
+## 5️⃣ Install & Configure NGINX
+
+### Install & Start
+
+```bash
+sudo apt install nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+```
+
+### Copy Build to NGINX
+
+```bash
+sudo cp -r dist/* /var/www/html/
+```
+
+### Open Port 80 (AWS Security Group)
+
+- Inbound Rule → HTTP → Port 80 → `0.0.0.0/0`
+
+---
+
+## 6️⃣ Backend Deployment (Node + Express)
+
+### Clone Backend
+
+```bash
+git clone https://github.com/Priyasaha7/Dev_Tinder.git
+cd Dev_Tinder
+npm install
+```
+
+### Environment Variables
+
+Create `.env`:
+
+```env
+DB_USERNAME=...
+DB_PASSWORD=...
+DB_HOST=...
+```
+
+### MongoDB Atlas
+
+- Network Access → Add EC2 Public IP (`curl ifconfig.me`)
+
+### Test Backend
+
+```bash
+npm start
+```
+
+Expected:
+
+```
+Database connected
+Server running on port 7777
+```
+
+---
+
+## 7️⃣ PM2 (Process Manager)
+
+### Install & Run
+
+```bash
+sudo npm install -g pm2
+pm2 start npm --name "devTinder-backend" -- start
+```
+
+### Useful Commands
+
+```bash
+pm2 list
+pm2 logs devTinder-backend
+pm2 restart devTinder-backend
+pm2 stop devTinder-backend
+pm2 delete devTinder-backend
+```
+
+### Auto‑start on Reboot
+
+```bash
+pm2 startup
+pm2 save
+```
+
+---
+
+## 8️⃣ NGINX Reverse Proxy (`/api → backend`)
+
+Edit config:
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+```nginx
+server {
+  listen 80;
+  server_name devtinder.com www.devtinder.com;
+
+  location /api/ {
+    proxy_pass http://localhost:7777/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+
+  location / {
+    root /var/www/html;
+    index index.html;
+    try_files $uri /index.html;
+  }
+}
+```
+
+Apply:
+
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+---
+
+## 9️⃣ Frontend API Base URL
+
+**Before (local)**
+
+```js
+const BASE_URL = "http://localhost:7777";
+```
+
+**After (production)**
+
+```js
+const BASE_URL = "/api";
+```
+
+Rebuild & deploy:
+
+```bash
+npm run build
+sudo cp -r dist/* /var/www/html/
+sudo systemctl reload nginx
+```
+
+---
+
+## 🔁 Updating Code Later
+
+### Frontend
+
+```bash
+git pull
+npm run build
+sudo cp -r dist/* /var/www/html/
+```
+
+### Backend
+
+```bash
+git pull
+npm install   # if deps changed
+pm2 restart devTinder-backend
+```
+
+---
+
+## 🔟 AWS SES – Email Setup
+
+### IAM User
+
+- Create IAM user (programmatic access)
+- Attach policy: `AmazonSESFullAccess`
+- Generate Access Key & Secret
+
+### SES (Sandbox Mode)
+
+- Region: `ap-south-1`
+- Verify **FROM** and **TO** email addresses
+
+### Environment Variables
+
+```env
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=XXXX
+AWS_SECRET_ACCESS_KEY=XXXX
+SES_FROM_EMAIL=verified_email@gmail.com
+```
+
+---
+
+## 1️⃣1️⃣ SES Client
+
+```js
+const { SESClient } = require("@aws-sdk/client-ses");
+
+const sesClient = new SESClient({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+module.exports = sesClient;
+```
+
+---
+
+## 1️⃣2️⃣ Send Email Utility
+
+```js
+const { SendEmailCommand } = require("@aws-sdk/client-ses");
+const sesClient = require("./sesClient");
+
+const sendEmail = async ({ to, subject, body }) => {
+  try {
+    const command = new SendEmailCommand({
+      Source: process.env.SES_FROM_EMAIL,
+      Destination: { ToAddresses: [to] },
+      Message: {
+        Subject: { Data: subject, Charset: "UTF-8" },
+        Body: { Text: { Data: body, Charset: "UTF-8" } },
+      },
+    });
+
+    await sesClient.send(command);
+    return true;
+  } catch (err) {
+    console.error("SES error:", err.message);
+    return false;
+  }
+};
+
+module.exports = sendEmail;
+```
+
+---
+
+## 1️⃣3️⃣ Cron Job (Daily Reminder)
+
+```js
+cron.schedule(
+  "0 8 * * *",
+  async () => {
+    try {
+      const yesterday = subDays(new Date(), 1);
+
+      const requests = await ConnectionRequest.find({
+        status: "interested",
+        createdAt: {
+          $gte: startOfDay(yesterday),
+          $lt: endOfDay(yesterday),
+        },
+      }).populate("toUserId");
+
+      const emails = [...new Set(requests.map((r) => r.toUserId.emailID))];
+
+      for (const email of emails) {
+        await sendEmail({
+          to: email,
+          subject: "New Connection Request",
+          body: "You have pending requests on DevTinder.",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  },
+  { timezone: "Asia/Kolkata" },
+);
+```
+
+---
+
+## ⚠️ SES Sandbox Notes
+
+- FROM email must be verified
+- TO email must be verified
+- Perfect for demos & college projects
+
+---
+
+## 🔐 Security Best Practices
+
+- Do **not** expose port `7777`
+- Open only: `22`, `80`, `443`
+- Never commit `.env`
+- Never expose AWS keys to frontend
+
+---
+
+## ✅ Final Result
+
+- Frontend served by NGINX
+- Backend secured behind `/api`
+- PM2 keeps backend alive
+- SES emails working
+- Production‑ready learning setup
+
+---
+
+🎯 **This document can be reused as a deployment template for any future Node + React project.**
+
 # 💬 Real-Time Chat Feature (Socket.IO + MongoDB)
 
 This document explains **everything implemented so far** for the chat feature, step by step, from backend setup to frontend integration.
